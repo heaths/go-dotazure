@@ -1,0 +1,54 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "useGitignore": true,
+  "ignorePaths": [
+    ".cspell.json",
+    ".devcontainer/",
+    ".github/",
+    ".vscode/",
+    "go.mod",
+    "go.sum"
+  ],
+  "words": [
+    "dotazure",
+    "golang",
+    "goversion"
+  ],
+  "dictionaryDefinitions": [
+    {
+      "name": "modules",
+      "words": [
+        "afero",
+        "azidentity",
+        "azsecrets",
+        "dotenv",
+        "godotenv",
+        "joho",
+        "stretchr"
+      ],
+      "noSuggest": true
+    }
+  ],
+  "overrides": [
+    {
+      "filename": "Cargo.toml",
+      "dictionaries": [
+        "modules"
+      ]
+    },
+    {
+      "filename": "**/*.md",
+      "dictionaries": [
+        "modules",
+        "golang"
+      ]
+    },
+    {
+      "filename": "**/*.go",
+      "dictionaries": [
+        "modules"
+      ]
+    }
+  ]
+}
