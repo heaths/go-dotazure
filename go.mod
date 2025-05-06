@@ -1,4 +1,4 @@
-module github.com/heaths/dotazure
+module github.com/heaths/go-dotazure
 
 go 1.23.0
 
