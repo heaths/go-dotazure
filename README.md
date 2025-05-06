@@ -14,7 +14,7 @@ If you do not already have an [Azure Developer CLI] (azd) project, you can creat
 azd init
 ```
 
-After you define some resources e.g., an [Azure Key Vault](https://github.com/heaths/dotazure-rs/blob/refactor/infra/resources.bicep),
+After you define some resources e.g., an [Azure Key Vault](https://github.com/heaths/go-dotazure/blob/main/infra/resources.bicep),
 you can provision those resources which will create a `.env` file with any `output` parameters:
 
 ```sh
@@ -30,22 +30,23 @@ from the default environment e.g.,
 package main
 
 import (
-    "errors"
-    "fmt"
-    "os"
+	"errors"
+	"fmt"
+	"os"
 
-    "github.com/heaths/go-dotazure"
+	"github.com/heaths/go-dotazure"
 )
-func main() {
-    if err := dotazure.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
-        panic(err)
-    }
 
-    // Assumes bicep contains e.g.
-    //
-    // output AZURE_KEYVAULT_URL string = kv.properties.vaultUri
-     vaultURL, _ := os.LookupEnv("AZURE_KEYVAULT_URL")
-    fmt.Fprintln("AZURE_KEYVAULT_URL=%q", vaultURL)
+func main() {
+	if err := dotazure.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
+		panic(err)
+	}
+
+	// Assumes bicep contains e.g.
+	//
+	// output AZURE_KEYVAULT_URL string = kv.properties.vaultUri
+	vaultURL, _ := os.LookupEnv("AZURE_KEYVAULT_URL")
+	fmt.Printf("AZURE_KEYVAULT_URL=%q\n", vaultURL)
 }
 ```
 
