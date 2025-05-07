@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 
@@ -15,8 +14,10 @@ import (
 )
 
 func main() {
-	if err := dotazure.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
+	if loaded, err := dotazure.Load(); err != nil {
 		panic(err)
+	} else if loaded {
+		fmt.Fprintln(os.Stderr, "loaded environment variables")
 	}
 
 	vaultURL, _ := os.LookupEnv("AZURE_KEYVAULT_URL")

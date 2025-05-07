@@ -30,23 +30,25 @@ from the default environment e.g.,
 package main
 
 import (
-	"errors"
-	"fmt"
-	"os"
+    "errors"
+    "fmt"
+    "os"
 
-	"github.com/heaths/go-dotazure"
+    "github.com/heaths/go-dotazure"
 )
 
 func main() {
-	if err := dotazure.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
-		panic(err)
-	}
+    if loaded, err := dotazure.Load(); err != nil {
+        panic(err)
+    } else if loaded {
+        fmt.Fprintln(os.Stderr, "loaded environment variables")
+    }
 
-	// Assumes bicep contains e.g.
-	//
-	// output AZURE_KEYVAULT_URL string = kv.properties.vaultUri
-	vaultURL, _ := os.LookupEnv("AZURE_KEYVAULT_URL")
-	fmt.Printf("AZURE_KEYVAULT_URL=%q\n", vaultURL)
+    // Assumes bicep contains e.g.
+    //
+    // output AZURE_KEYVAULT_URL string = kv.properties.vaultUri
+    vaultURL, _ := os.LookupEnv("AZURE_KEYVAULT_URL")
+    fmt.Printf("AZURE_KEYVAULT_URL=%q\n", vaultURL)
 }
 ```
 

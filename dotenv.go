@@ -4,7 +4,9 @@
 package dotazure
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 
 	"github.com/joho/godotenv"
 )
@@ -12,19 +14,22 @@ import (
 // Load loads environment variables for an Azure Developer CLI project.
 //
 // Locates the `.env` file from the default environment name if an Azure Developer CLI project was already provisioned.
-func Load(opts ...LoadOption) error {
+// Returns true if a `.env` file was found and loaded successfully; otherwise, returns an error.
+func Load(opts ...LoadOption) (bool, error) {
 	l := loader{}
 
 	var err error
 	for _, opt := range opts {
 		if err = opt(&l); err != nil {
-			return fmt.Errorf("setting option: %w", err)
+			return false, fmt.Errorf("setting option: %w", err)
 		}
 	}
 
 	if l.context == nil {
-		if l.context, err = NewAzdContext(); err != nil {
-			return fmt.Errorf("getting default context: %w", err)
+		if l.context, err = NewAzdContext(); errors.Is(err, fs.ErrNotExist) {
+			return false, nil
+		} else if err != nil {
+			return false, fmt.Errorf("getting default context: %w", err)
 		}
 	}
 
@@ -34,10 +39,12 @@ func Load(opts ...LoadOption) error {
 	} else {
 		err = godotenv.Load(path)
 	}
-	if err != nil {
-		return fmt.Errorf("loading environment variables: %w", err)
+	if errors.Is(err, fs.ErrNotExist) {
+		return false, nil
+	} else if err != nil {
+		return false, fmt.Errorf("loading environment variables: %w", err)
 	}
-	return nil
+	return true, nil
 }
 
 // LoadOption configures options for loading environment variables.

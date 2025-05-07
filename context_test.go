@@ -24,12 +24,19 @@ func TestNewAzdContext(t *testing.T) {
 	}{
 		{
 			name:    "no project",
-			wantErr: ErrNoProject,
+			wantErr: _fs.ErrNotExist,
 		},
 		{
 			name: "no environment dir",
 			setup: func(root string, fs afero.Fs) error {
 				return afero.WriteFile(fs, filepath.Join(root, "src", "azure.yaml"), nil, 0644)
+			},
+			wantErr: _fs.ErrNotExist,
+		},
+		{
+			name: "environment file",
+			setup: func(root string, fs afero.Fs) error {
+				return afero.WriteFile(fs, filepath.Join(root, ".azure"), nil, 0644)
 			},
 			wantErr: _fs.ErrNotExist,
 		},
@@ -41,7 +48,17 @@ func TestNewAzdContext(t *testing.T) {
 				}
 				return afero.WriteFile(fs, filepath.Join(root, "src", ".azure", "config.json"), []byte(`{}`), 0644)
 			},
-			wantErr: ErrNoEnvironmentName,
+			wantErr: _fs.ErrNotExist,
+		},
+		{
+			name: "corrupt environment",
+			setup: func(root string, fs afero.Fs) error {
+				if err := afero.WriteFile(fs, filepath.Join(root, "src", "azure.yaml"), nil, 0644); err != nil {
+					return err
+				}
+				return afero.WriteFile(fs, filepath.Join(root, "src", ".azure", "config.json"), []byte(`invalid`), 0644)
+			},
+			wantErr: errInvalidEnvironment,
 		},
 		{
 			name: "default environment",
@@ -72,6 +89,29 @@ func TestNewAzdContext(t *testing.T) {
 			},
 			wantPath: filepath.Join("src", ".azure", "prod", ".env"),
 		},
+		{
+			name: "empty environment name",
+			setup: func(root string, fs afero.Fs) error {
+				if err := afero.WriteFile(fs, filepath.Join(root, "src", "azure.yaml"), nil, 0644); err != nil {
+					return err
+				}
+				if err := afero.WriteFile(fs, filepath.Join(root, "src", ".azure", "config.json"), []byte(`{"defaultEnvironment":"dev"}`), 0644); err != nil {
+					return err
+				}
+				return afero.WriteFile(fs, filepath.Join(root, "src", ".azure", "prod", ".env"), nil, 0644)
+			},
+			opts: []AzdContextOption{
+				WithEnvironmentName(""),
+			},
+			wantErr: errEmptyArgument,
+		},
+		{
+			name: "absent working directory",
+			opts: []AzdContextOption{
+				WithCurrentDirectory("src/shouldNotExist"),
+			},
+			wantErr: _fs.ErrNotExist,
+		},
 	}
 
 	// Use the real PWD because filepath.Abs uses it.
@@ -93,7 +133,7 @@ func TestNewAzdContext(t *testing.T) {
 			}
 			opts := append([]AzdContextOption{
 				// cspell:disable-next-line
-				WithFS(fs),
+				withContextFS(fs),
 				WithCurrentDirectory(pwd),
 			}, tt.opts...)
 			context, err := NewAzdContext(opts...)
@@ -107,7 +147,7 @@ func TestNewAzdContext(t *testing.T) {
 	}
 }
 
-func WithFS(fs afero.Fs) AzdContextOption {
+func withContextFS(fs afero.Fs) AzdContextOption {
 	return func(c *config) error {
 		c.fs = fs
 		return nil
