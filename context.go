@@ -14,15 +14,11 @@ import (
 	"github.com/spf13/afero"
 )
 
-func init() {
-	defaultFs = afero.NewOsFs()
-}
-
 var (
-	ErrNoProject         = errors.New("no project exists; to create a new project, run `azd init`")
-	ErrNoEnvironmentName = errors.New("'.azure/config.json' does not define `defaultEnvironment`")
+	errEmptyArgument      = errors.New("empty argument")
+	errInvalidEnvironment = errors.New("invalid environment")
 
-	defaultFs afero.Fs
+	defaultFs afero.Fs = afero.NewOsFs()
 )
 
 // AzdContext contains project information for the Azure Development CLI.
@@ -61,7 +57,7 @@ func NewAzdContext(opts ...AzdContextOption) (*AzdContext, error) {
 		if os.IsNotExist(err) || (err == nil && stat.IsDir()) {
 			parentDir := filepath.Dir(searchDir)
 			if parentDir == searchDir {
-				return nil, ErrNoProject
+				return nil, fs.ErrNotExist
 			}
 			searchDir = parentDir
 		} else if err == nil {
@@ -75,7 +71,9 @@ func NewAzdContext(opts ...AzdContextOption) (*AzdContext, error) {
 	// Get the environment name from .azure/config.json if not set.
 	if c.environmentName == "" {
 		environmentRoot := filepath.Join(searchDir, ".azure")
-		if stat, err := c.FS().Stat(environmentRoot); err != nil || !stat.IsDir() {
+		if stat, err := c.FS().Stat(environmentRoot); err != nil {
+			return nil, fmt.Errorf("checking config file: %w", err)
+		} else if !stat.IsDir() {
 			return nil, fmt.Errorf("checking config file: %w", fs.ErrNotExist)
 		}
 		environmentPath := filepath.Join(environmentRoot, "config.json")
@@ -86,11 +84,11 @@ func NewAzdContext(opts ...AzdContextOption) (*AzdContext, error) {
 
 		var config configFile
 		if err := json.Unmarshal(content, &config); err != nil {
-			return nil, fmt.Errorf("deserializing config file: %w", err)
+			return nil, errors.Join(fmt.Errorf("deserializing config file: %w", err), errInvalidEnvironment)
 		}
 
 		if config.DefaultEnvironment == "" {
-			return nil, ErrNoEnvironmentName
+			return nil, fs.ErrNotExist
 		}
 
 		c.environmentName = config.DefaultEnvironment
@@ -120,7 +118,7 @@ func WithCurrentDirectory(path string) AzdContextOption {
 func WithEnvironmentName(name string) AzdContextOption {
 	return func(c *config) error {
 		if len(name) == 0 {
-			return fmt.Errorf("name cannot be empty")
+			return errEmptyArgument
 		}
 		c.environmentName = name
 		return nil
