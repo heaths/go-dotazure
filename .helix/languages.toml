@@ -1,0 +1,8 @@
+[[language]]
+name = "go"
+auto-format = true
+
+[[language]]
+name = "json"
+auto-format = true
+indent = { tab-width = 2, unit = "  " }
