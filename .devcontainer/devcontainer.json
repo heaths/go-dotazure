@@ -1,11 +1,19 @@
 {
   "name": "Go",
-  "image": "mcr.microsoft.com/devcontainers/go:1-buster",
+  "image": "mcr.microsoft.com/devcontainers/go:1-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/azure-cli:1": {
+      "installBicep": true
+    },
+    "ghcr.io/azure/azure-dev/azd:latest": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
   "customizations": {
     "vscode": {
       "extensions": [
         "editorconfig.editorconfig",
         "golang.go",
+        "ms-azuretools.azure-dev",
         "streetsidesoftware.code-spell-checker"
       ]
     }
