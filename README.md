@@ -14,6 +14,12 @@ If you do not already have an [Azure Developer CLI] (azd) project, you can creat
 azd init
 ```
 
+Go get [`dotazure`](https://pkg.go.dev/github.com/heaths/go-dotazure) to add it to your project:
+
+```sh
+go get github.com/heaths/go-dotazure
+```
+
 After you define some resources e.g., an [Azure Key Vault](https://github.com/heaths/go-dotazure/blob/main/infra/resources.bicep),
 you can provision those resources which will create a `.env` file with any `output` parameters:
 
