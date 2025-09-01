@@ -24,7 +24,7 @@ func main() {
 	if vaultURL == "" {
 		panic("AZURE_KEYVAULT_URL not set")
 	}
-	credential, err := azidentity.NewDefaultAzureCredential(nil)
+	credential, err := azidentity.NewAzureDeveloperCLICredential(nil)
 	if err != nil {
 		panic(fmt.Errorf("create credential: %w", err))
 	}
